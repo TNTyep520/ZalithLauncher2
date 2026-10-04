@@ -236,7 +236,6 @@ private fun AccountManageContent(
                 .padding(all = 12.dp)
                 .weight(3f),
             currentAccount = profileUiState.currentAccount,
-            isOffline = profileUiState.isOffline,
             actions = actions
         )
 
@@ -248,7 +247,6 @@ private fun AccountManageContent(
                 .weight(7f),
             accounts = profileUiState.accounts,
             currentAccount = profileUiState.currentAccount,
-            isOffline = profileUiState.isOffline,
             accountOperation = operationUiState.accountOp,
             accountSkinOperation = operationUiState.accountSkinOp,
             accountSkinDialogState = operationUiState.accountSkinDialogState,
@@ -272,7 +270,6 @@ private fun ActionsLayout(
     isVisible: Boolean,
     modifier: Modifier = Modifier,
     currentAccount: Account?,
-    isOffline: Boolean,
     actions: AccountActions
 ) {
     val xOffset by swapAnimateDpAsState(
@@ -306,12 +303,7 @@ private fun ActionsLayout(
             modifier = Modifier
                 .fillMaxWidth(),
             onClick = {
-                if (isOffline) {
-                    //非正版状态下，只允许创建微软账号
-                    actions.onIntent(AccountManageIntent.UpdateMicrosoftLoginOp(MicrosoftLoginOperation.Tip))
-                } else {
-                    actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
-                }
+                actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
             }
         ) {
             MarqueeText(text = stringResource(R.string.account_add_new_account))
@@ -631,7 +623,6 @@ private fun AccountsLayout(
     modifier: Modifier = Modifier,
     accounts: List<Account>,
     currentAccount: Account?,
-    isOffline: Boolean,
     accountOperation: AccountOperation,
     accountSkinOperation: AccountSkinOperation,
     accountSkinDialogState: AccountManageViewModel.AccountSkinDialogState,
@@ -674,7 +665,6 @@ private fun AccountsLayout(
                             .padding(vertical = 6.dp),
                         currentAccount = currentAccount,
                         account = account,
-                        enabled = !isOffline, //非正版状态下不允许选择任何状态
                         onSelected = { AccountsManager.setCurrentAccount(it) },
                         openChangeSkinDialog = {
                             if (!account.isAuthServerAccount()) {
