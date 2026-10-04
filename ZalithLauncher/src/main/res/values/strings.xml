@@ -502,6 +502,7 @@
     <string name="account_label_email">Email or Username</string>
     <string name="account_label_password">Password</string>
     <string name="account_change_skin">Change Skin</string>
+    <string name="account_wardrobe">Wardrobe</string>
     <string name="account_change_skin_arm_style">Arm Style</string>
     <string name="account_change_skin_arm_wide">Wide Arms</string>
     <string name="account_change_skin_arm_slim">Slim Arms</string>

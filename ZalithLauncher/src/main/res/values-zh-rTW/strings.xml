@@ -448,6 +448,7 @@
     <string name="account_label_email">填寫電子郵件或使用者名稱</string>
     <string name="account_label_password">填寫密碼</string>
     <string name="account_change_skin">更換皮膚</string>
+    <string name="account_wardrobe">衣櫥</string>
     <string name="account_change_skin_arm_style">手臂樣式</string>
     <string name="account_change_skin_arm_wide">粗手臂</string>
     <string name="account_change_skin_arm_slim">細手臂</string>

@@ -502,6 +502,7 @@
     <string name="account_label_email">填写邮箱或用户名</string>
     <string name="account_label_password">填写密码</string>
     <string name="account_change_skin">更换皮肤</string>
+    <string name="account_wardrobe">衣橱</string>
     <string name="account_change_skin_arm_style">手臂样式</string>
     <string name="account_change_skin_arm_wide">粗臂</string>
     <string name="account_change_skin_arm_slim">细臂</string>
