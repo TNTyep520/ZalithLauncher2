@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -112,8 +111,8 @@ import com.movtery.zalithlauncher.ui.components.MenuButtonLayout
 import com.movtery.zalithlauncher.ui.components.MenuSwitchButton
 import com.movtery.zalithlauncher.ui.components.MenuTextButton
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
-import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.ShimmerBox
+import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
@@ -655,6 +654,7 @@ private fun ServerCardSettingsDialog(
     var quickLaunch by remember(cardId) { mutableStateOf(record.quickLaunchEnabled) }
     var mode by remember(cardId) { mutableStateOf(record.versionMode) }
     var showVersionPicker by remember { mutableStateOf(false) }
+    val versions by VersionsManager.versions.collectAsStateWithLifecycle()
 
     CardDialogFrame(onDismissRequest = onDismissRequest) {
         Column(
@@ -717,7 +717,10 @@ private fun ServerCardSettingsDialog(
                 }
 
                 //手动刷新
-                RefreshDialogItem(cardId = cardId)
+                RefreshDialogItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    cardId = cardId
+                )
 
                 //快速启动
                 Column(
@@ -733,25 +736,31 @@ private fun ServerCardSettingsDialog(
                         switch = quickLaunch,
                         onSwitch = { quickLaunch = it }
                     )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    CompositionLocalProvider(
+                        LocalMinimumInteractiveComponentSize provides 0.dp
                     ) {
-                        FilterChip(
-                            enabled = quickLaunch,
-                            selected = mode == ServerCardVersionMode.CURRENT,
-                            onClick = { mode = ServerCardVersionMode.CURRENT },
-                            label = {
-                                Text(text = stringResource(R.string.home_server_card_version_current))
-                            }
-                        )
-                        FilterChip(
-                            enabled = quickLaunch,
-                            selected = mode == ServerCardVersionMode.SPECIFIC,
-                            onClick = { mode = ServerCardVersionMode.SPECIFIC },
-                            label = {
-                                Text(text = stringResource(R.string.home_server_card_version_specific))
-                            }
-                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            FilterChip(
+                                enabled = quickLaunch,
+                                selected = mode == ServerCardVersionMode.CURRENT,
+                                onClick = { mode = ServerCardVersionMode.CURRENT },
+                                label = {
+                                    Text(text = stringResource(R.string.home_server_card_version_current))
+                                }
+                            )
+                            FilterChip(
+                                enabled = quickLaunch,
+                                selected = mode == ServerCardVersionMode.SPECIFIC,
+                                onClick = { mode = ServerCardVersionMode.SPECIFIC },
+                                label = {
+                                    Text(text = stringResource(R.string.home_server_card_version_specific))
+                                }
+                            )
+                        }
                     }
 
                     //选择版本
@@ -818,83 +827,88 @@ private fun ServerCardSettingsDialog(
     }
 
     if (showVersionPicker) {
-        VersionPickerDialog(
-            boundVersionName = record.versionName,
-            onPick = { version ->
-                ServerCardManager.setVersionBinding(
-                    cardId = cardId,
-                    mode = ServerCardVersionMode.SPECIFIC,
-                    dir = VersionCardDir.fromGameHome(getGameHome()),
-                    versionName = version.getVersionName()
-                )
-                showVersionPicker = false
-            },
-            onDismissRequest = { showVersionPicker = false }
-        )
+        if (versions.isEmpty()) {
+            SimpleAlertDialog(
+                title = stringResource(R.string.download_assets_filter_game_version),
+                text = stringResource(R.string.versions_manage_no_versions),
+                onDismiss = { showVersionPicker = false }
+            )
+        } else {
+            VersionPickerDialog(
+                versions = versions,
+                boundVersionName = record.versionName,
+                onPick = { version ->
+                    ServerCardManager.setVersionBinding(
+                        cardId = cardId,
+                        mode = ServerCardVersionMode.SPECIFIC,
+                        dir = VersionCardDir.fromGameHome(getGameHome()),
+                        versionName = version.getVersionName()
+                    )
+                    showVersionPicker = false
+                },
+                onDismissRequest = { showVersionPicker = false }
+            )
+        }
     }
 }
 
 /**
- * 版本选择对话框
+ * 版本选择对话框：列出传入的已加载版本（图标+名称），点选即绑定；
+ * 版本列表为空时由调用方以普通对话框提示
  */
 @Composable
 private fun VersionPickerDialog(
+    versions: List<Version>,
     boundVersionName: String?,
     onPick: (Version) -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    val versions by VersionsManager.versions.collectAsStateWithLifecycle()
-
     CardDialogFrame(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = stringResource(R.string.download_assets_filter_game_version),
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.size(16.dp))
 
-            if (versions.isEmpty()) {
-                ScalingLabel(text = stringResource(R.string.versions_manage_no_versions))
-            } else {
-                CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentSize provides 0.dp
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentSize provides 0.dp
+            ) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f, fill = false),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(versions, key = { it.getVersionName() }) { version ->
-                            MenuButtonLayout(
-                                onClick = { onPick(version) },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                VersionIconImage(
+                    items(versions, key = { it.getVersionName() }) { version ->
+                        MenuButtonLayout(
+                            onClick = { onPick(version) },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            VersionIconImage(
+                                modifier = Modifier
+                                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp)
+                                    .size(36.dp)
+                                    .clip(CardIconShape),
+                                version = version
+                            )
+                            MarqueeText(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(all = 12.dp),
+                                text = version.getVersionName(),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            if (version.getVersionName() == boundVersionName) {
+                                Icon(
                                     modifier = Modifier
-                                        .padding(start = 12.dp, top = 12.dp, bottom = 12.dp)
-                                        .size(36.dp)
-                                        .clip(CardIconShape),
-                                    version = version
+                                        .padding(end = 12.dp)
+                                        .size(20.dp),
+                                    painter = painterResource(R.drawable.ic_check),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = null
                                 )
-                                MarqueeText(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(all = 12.dp),
-                                    text = version.getVersionName(),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                if (version.getVersionName() == boundVersionName) {
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(end = 12.dp)
-                                            .size(20.dp),
-                                        painter = painterResource(R.drawable.ic_check),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = null
-                                    )
-                                }
                             }
                         }
                     }
@@ -906,11 +920,15 @@ private fun VersionPickerDialog(
 
 /** 手动刷新条目 */
 @Composable
-private fun RefreshDialogItem(cardId: String) {
+private fun RefreshDialogItem(
+    cardId: String,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val inFlight by ServerCardManager.inFlightCards.collectAsStateWithLifecycle()
 
     MenuTextButton(
+        modifier = modifier,
         text = stringResource(R.string.generic_refresh),
         onClick = {
             ServerCardManager.refresh(cardId, manual = true) { success ->
