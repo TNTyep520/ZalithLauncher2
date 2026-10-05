@@ -29,7 +29,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -128,9 +130,6 @@ import com.movtery.zalithlauncher.utils.string.stripColorCodes
 
 /** 服务器卡片快速启动回调；版本为 null 时由接收方解析为当前选中版本 */
 val LocalServerCardQuickPlay = staticCompositionLocalOf<(Version?, String) -> Unit> { { _, _ -> } }
-
-/** 描述文本的最大行数 */
-private const val MOTD_MAX_LINES = 3
 
 /** 名称与信息行之间的间距 */
 private val DetailItemGap = 2.dp
@@ -249,19 +248,36 @@ private fun TallContent(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .weight(1f)
                 .clipToBounds()
         ) {
-            HeaderRow(card = card, iconSize = iconSize)
-            MotdText(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(top = DetailTopGap),
-                card = card,
-                enabled = showMOTD
-            )
+            //头行高度即图标高度，扣除后即图标下方的空白
+            val blank = maxHeight - iconSize - DetailTopGap
+            val lineHeight = with(LocalDensity.current) {
+                (MaterialTheme.typography.bodySmall.fontSize.toPx() * 1.1f).toDp()
+            }
+            //描述行的行数与空白高度一致
+            val maxLines = (blank.value / lineHeight.value).toInt()
+
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                HeaderRow(
+                    card = card,
+                    iconSize = iconSize
+                )
+
+                MotdText(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = DetailTopGap),
+                    card = card,
+                    enabled = showMOTD,
+                    maxLines = maxLines
+                )
+            }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -285,8 +301,14 @@ private fun TallContent(
 @Composable
 private fun HeaderRow(card: ServerCardState?, iconSize: Dp) {
     HoverTooltip(card = card) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ServerCardIcon(card = card, iconSize = iconSize)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ServerCardIcon(
+                card = card,
+                iconSize = iconSize
+            )
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(DetailItemGap)
@@ -399,21 +421,23 @@ private fun ServerDescription.flattenText(): String = when (this) {
     else -> ""
 }
 
-/** 服务器描述文本区，无描述或未达门槛时不占位 */
+/** 服务器描述文本区 */
 @Composable
 private fun MotdText(
     modifier: Modifier = Modifier,
     card: ServerCardState?,
-    enabled: Boolean
+    enabled: Boolean,
+    maxLines: Int,
 ) {
-    if (!enabled) return
+    if (!enabled || maxLines <= 0) return
     val description = (card?.ping as? ServerCardPingStatus.Loaded)
         ?.result?.status?.description ?: return
     DescriptionTextRender(
         modifier = modifier,
         description = description,
         fontSize = MaterialTheme.typography.bodySmall.fontSize,
-        maxLines = MOTD_MAX_LINES
+        maxLines = maxLines,
+        softWrap = true
     )
 }
 
@@ -424,28 +448,38 @@ private fun StatusInfoRow(card: ServerCardState?) {
         is ServerCardPingStatus.Loaded -> {
             val undefined = stringResource(R.string.servers_list_undefined)
             val playerFull = stringResource(R.string.servers_list_players_full)
-            Row(
+            FlowRow(
                 modifier = Modifier.alpha(0.7f),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                ServerSignalIcon(
-                    modifier = Modifier.size(16.dp),
-                    signalStrength = signalStrengthOf(ping.result.pingMs)
-                )
-                Text(
-                    text = "${ping.result.pingMs} ms",
-                    style = MaterialTheme.typography.labelSmall
-                )
-                Icon(
-                    modifier = Modifier.size(16.dp),
-                    painter = painterResource(R.drawable.ic_person_outlined),
-                    contentDescription = null
-                )
-                Text(
-                    text = playersText(ping.result.status.players, undefined, playerFull),
-                    style = MaterialTheme.typography.labelSmall
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    ServerSignalIcon(
+                        modifier = Modifier.size(16.dp),
+                        signalStrength = signalStrengthOf(ping.result.pingMs)
+                    )
+                    Text(
+                        text = "${ping.result.pingMs} ms",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        painter = painterResource(R.drawable.ic_person_outlined),
+                        contentDescription = null
+                    )
+                    Text(
+                        text = playersText(ping.result.status.players, undefined, playerFull),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
         }
         //初始刷新中：以进度条替代延迟/人数行

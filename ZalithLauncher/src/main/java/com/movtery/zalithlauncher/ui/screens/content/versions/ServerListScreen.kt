@@ -1140,6 +1140,7 @@ fun DescriptionTextRender(
     modifier: Modifier = Modifier,
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
+    softWrap: Boolean = false,
 ) {
     when(description) {
         is ComponentDescriptionRoot -> {
@@ -1147,7 +1148,8 @@ fun DescriptionTextRender(
                 modifier = modifier,
                 descriptions = description.values,
                 fontSize = fontSize,
-                maxLines = maxLines
+                maxLines = maxLines,
+                softWrap = softWrap
             )
         }
         is ComponentDescription -> {
@@ -1155,7 +1157,8 @@ fun DescriptionTextRender(
                 modifier = modifier,
                 descriptions = listOf(description),
                 fontSize = fontSize,
-                maxLines = maxLines
+                maxLines = maxLines,
+                softWrap = softWrap
             )
         }
         is StringDescription -> {
@@ -1164,7 +1167,8 @@ fun DescriptionTextRender(
                 modifier = modifier,
                 inputText = value,
                 fontSize = fontSize,
-                maxLines = maxLines
+                maxLines = maxLines,
+                softWrap = softWrap
             )
         }
     }

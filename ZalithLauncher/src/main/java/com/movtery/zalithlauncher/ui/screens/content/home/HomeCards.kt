@@ -45,10 +45,9 @@ import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardCon
 class SystemCard(val id: String, val content: @Composable () -> Unit)
 
 /**
- * 用户卡片图标的圆角：按图标尺寸的百分比缩放，
- * 使各形态下的图标与卡片容器（extraLarge）保持同一套圆角语言
+ * 用户卡片图标的圆角
  */
-val CardIconShape = RoundedCornerShape(percent = 20)
+val CardIconShape = RoundedCornerShape(percent = 28)
 
 /**
  * 主页卡片注册表
