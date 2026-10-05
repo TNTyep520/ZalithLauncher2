@@ -507,8 +507,9 @@ private fun QuickLaunchButton(
     val launch = {
         when (record.versionMode) {
             ServerCardVersionMode.SPECIFIC -> {
+                //启动前校验绑定版本是否仍然可用，失效则回退当前选中版本
                 val available = card.versionStatus as? VersionCardStatus.Available
-                onQuickPlay(available?.version, record.cardId)
+                onQuickPlay(available?.version?.takeIf { it.isValid() }, record.cardId)
             }
             ServerCardVersionMode.CURRENT -> onQuickPlay(null, record.cardId)
         }
@@ -827,7 +828,10 @@ private fun ServerCardSettingsDialog(
     }
 
     if (showVersionPicker) {
-        if (versions.isEmpty()) {
+        val usableVersions = remember(versions) {
+            versions.filter { it.isValid() }
+        }
+        if (usableVersions.isEmpty()) {
             SimpleAlertDialog(
                 title = stringResource(R.string.download_assets_filter_game_version),
                 text = stringResource(R.string.versions_manage_no_versions),
@@ -835,7 +839,7 @@ private fun ServerCardSettingsDialog(
             )
         } else {
             VersionPickerDialog(
-                versions = versions,
+                versions = usableVersions,
                 boundVersionName = record.versionName,
                 onPick = { version ->
                     ServerCardManager.setVersionBinding(

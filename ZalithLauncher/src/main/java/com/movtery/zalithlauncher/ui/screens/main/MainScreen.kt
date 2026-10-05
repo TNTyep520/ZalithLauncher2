@@ -535,7 +535,7 @@ private fun NavigationUI(
                             )
                         },
                         onQuickPlayServer = { version, address ->
-                            val target = version ?: VersionsManager.currentVersion.value
+                            val target = (version ?: VersionsManager.currentVersion.value)?.takeIf { it.isValid() }
                             if (target != null) {
                                 eventViewModel.sendEvent(
                                     EventViewModel.Event.Launch.PlayServer(target, address)
