@@ -117,6 +117,7 @@ import com.movtery.zalithlauncher.ui.components.ShimmerBox
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.CardIconShape
 import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardDir
@@ -768,12 +769,14 @@ private fun ServerCardSettingsDialog(
                             MenuTextButton(
                                 text = record.versionName
                                     ?: stringResource(R.string.generic_unspecified),
+                                enabled = quickLaunch,
                                 onClick = { showVersionPicker = true },
                                 appendLayout = {
                                     Icon(
                                         modifier = Modifier
                                             .padding(end = 12.dp)
-                                            .size(24.dp),
+                                            .size(24.dp)
+                                            .alpha(if (quickLaunch) 1f else DisabledAlpha),
                                         painter = painterResource(R.drawable.ic_settings_filled),
                                         contentDescription = null
                                     )
