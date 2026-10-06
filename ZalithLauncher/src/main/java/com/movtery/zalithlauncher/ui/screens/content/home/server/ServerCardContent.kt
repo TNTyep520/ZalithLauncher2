@@ -342,7 +342,11 @@ private fun RowContent(
         horizontalArrangement = Arrangement.spacedBy(spacing),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ServerCardIcon(card = card, iconSize = iconSize)
+        ServerCardIcon(
+            card = card,
+            iconSize = iconSize
+        )
+
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(DetailItemGap)
@@ -573,7 +577,7 @@ private fun ServerCardIcon(
         .size(iconSize)
         .clip(CardIconShape)
     if (icon == null) {
-        Icon(
+        Image(
             modifier = sizeModifier,
             painter = painterResource(R.drawable.ic_unknown_icon),
             contentDescription = null
