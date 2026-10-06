@@ -53,6 +53,7 @@ import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.device.Architecture
+import com.movtery.zalithlauncher.utils.device.VulkanShim
 import com.movtery.zalithlauncher.utils.file.child
 import com.movtery.zalithlauncher.utils.file.ensureDirectorySilently
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -183,6 +184,12 @@ class GameLauncher(
         val envMap = super.initEnv(screenSize)
 
         envMap["DRIVER_PATH"] = DriverPluginManager.getDriver(version.getDriver()).path
+
+        //检测判定设备存在可由 vkshim 补齐的驱动缺口（divisor 扩展合成 /
+        //fillModeNonSolid 降级模拟）时，经 vkshim 包装系统 Vulkan 加载器
+        if (VulkanShim.needsVulkanShim) {
+            envMap["VKSHIM_ENABLE"] = "1"
+        }
 
         checkAndUsedJSPH(envMap, runtime)
         version.getVersionInfo()?.loaderInfos?.forEach { info ->

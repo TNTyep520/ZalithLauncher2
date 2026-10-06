@@ -126,7 +126,16 @@ void load_vulkan() {
     }
 
     printf("OSMDroid: Loading Vulkan regularly...\n");
-    void* vulkanPtr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
+    void* vulkanPtr = NULL;
+    if (getenv("VKSHIM_ENABLE") != NULL) {
+        vulkanPtr = dlopen("libvkshim.so", RTLD_LAZY | RTLD_LOCAL);
+        if (vulkanPtr == NULL) {
+            printf("vkshim unavailable (%s), fallback to system loader\n", dlerror());
+        }
+    }
+    if (vulkanPtr == NULL) {
+        vulkanPtr = dlopen("libvulkan.so", RTLD_LAZY | RTLD_LOCAL);
+    }
     printf("OSMDroid: Loaded Vulkan, ptr=%p\n", vulkanPtr);
     set_vulkan_ptr(vulkanPtr);
 }
