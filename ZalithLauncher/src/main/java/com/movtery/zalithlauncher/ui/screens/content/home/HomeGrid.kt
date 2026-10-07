@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.cardgrid.model.CardRect
 import com.movtery.cardgrid.state.CardGridState
 import com.movtery.cardgrid.state.CardSeed
@@ -65,10 +64,18 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.screens.content.home.server.ServerCardManager
+import com.movtery.zalithlauncher.ui.screens.content.home.server.ServerCardSettingsHost
 import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardManager
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import kotlinx.coroutines.flow.distinctUntilChanged
+
+/** 主页网格的卡片操作 */
+private sealed interface HomeCardOperation {
+    data object None : HomeCardOperation
+    /** 打开服务器卡片的设置对话框 */
+    data class ServerCardSettings(val cardId: String) : HomeCardOperation
+}
 
 /**
  * 主页网格：系统卡片列 + 卡片网格库容器，
@@ -81,6 +88,8 @@ fun HomeGrid(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    //长按调整工具栏触发的卡片操作
+    var operation by remember { mutableStateOf<HomeCardOperation>(HomeCardOperation.None) }
 
     // 播种持久化的用户卡片布局
     LaunchedEffect(Unit) {
@@ -224,7 +233,8 @@ fun HomeGrid(
                     CardToolbar(
                         modifier = modifier,
                         state = state,
-                        card = card
+                        card = card,
+                        onShowSettings = { operation = HomeCardOperation.ServerCardSettings(card.id) },
                     )
                 },
             )
@@ -234,6 +244,27 @@ fun HomeGrid(
             scrollState = scrollState
         )
     }
+
+    HomeCardOperation(
+        operation = operation,
+        onChange = { operation = it }
+    )
+}
+
+@Composable
+private fun HomeCardOperation(
+    operation: HomeCardOperation,
+    onChange: (HomeCardOperation) -> Unit
+) {
+    when (operation) {
+        is HomeCardOperation.None -> {}
+        is HomeCardOperation.ServerCardSettings -> {
+            ServerCardSettingsHost(
+                cardId = operation.cardId,
+                onDismiss = { onChange(HomeCardOperation.None) }
+            )
+        }
+    }
 }
 
 
@@ -241,6 +272,7 @@ fun HomeGrid(
 private fun CardToolbar(
     state: CardGridState,
     card: GridCard,
+    onShowSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -258,7 +290,16 @@ private fun CardToolbar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (card.type.typeId == HomeCards.SERVER_CARD_TYPE_ID) {
-                QuickLaunchToggle(cardId = card.id)
+                //卡片设置入口
+                IconButton(
+                    modifier = Modifier.size(34.dp),
+                    onClick = onShowSettings
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_settings_filled),
+                        contentDescription = stringResource(R.string.generic_setting)
+                    )
+                }
             }
             IconButton(
                 modifier = Modifier.size(34.dp),
@@ -280,28 +321,5 @@ private fun CardToolbar(
                 )
             }
         }
-    }
-}
-
-/** 服务器卡片的快速启动按钮开关 */
-@Composable
-private fun QuickLaunchToggle(cardId: String) {
-    val states by ServerCardManager.cards.collectAsStateWithLifecycle()
-    val enabled = remember(states, cardId) {
-        states.firstOrNull { it.record.cardId == cardId }?.record?.quickLaunchEnabled == true
-    }
-    IconButton(
-        modifier = Modifier.size(34.dp),
-        onClick = { ServerCardManager.setQuickLaunchEnabled(cardId, !enabled) }
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_play_arrow_filled),
-            tint = if (enabled) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
-            contentDescription = stringResource(R.string.home_server_card_quick_launch)
-        )
     }
 }

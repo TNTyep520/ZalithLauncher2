@@ -22,8 +22,6 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -68,7 +66,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -76,7 +73,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -91,7 +87,6 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.movtery.cardgrid.model.CardInteraction
 import com.movtery.cardgrid.model.CardSize
 import com.movtery.cardgrid.model.CardSizeClass
 import com.movtery.cardgrid.model.CardState
@@ -147,20 +142,9 @@ fun CardState.ServerCardContent(cardId: String) {
         states.firstOrNull { it.record.cardId == cardId }
     }
 
-    var showSettings by remember { mutableStateOf(false) }
-
-    //点按手势不持有指针事件，交互状态在回调触发时读取即时值
-    val currentInteraction by rememberUpdatedState(interaction)
-    val hasCard by rememberUpdatedState(card != null)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .homeCardTap {
-                if (currentInteraction == CardInteraction.Idle && hasCard) {
-                    showSettings = true
-                }
-            }
             .padding(12.dp)
     ) {
         when {
@@ -186,15 +170,28 @@ fun CardState.ServerCardContent(cardId: String) {
             )
         }
     }
+}
 
-    if (showSettings) {
-        card?.record?.let { record ->
-            ServerCardSettingsDialog(
-                record = record,
-                onDismissRequest = { showSettings = false }
-            )
-        }
+/**
+ * 服务器卡片设置对话框宿主
+ */
+@Composable
+fun ServerCardSettingsHost(
+    cardId: String,
+    onDismiss: () -> Unit
+) {
+    val states by ServerCardManager.cards.collectAsStateWithLifecycle()
+    val record = remember(states, cardId) {
+        states.firstOrNull { it.record.cardId == cardId }?.record
+    } ?: run {
+        onDismiss()
+        return
     }
+
+    ServerCardSettingsDialog(
+        record = record,
+        onDismissRequest = onDismiss
+    )
 }
 
 private fun iconSizeFor(sizeClass: CardSize): Dp {
@@ -211,28 +208,6 @@ private fun enlargedIconSize(sizeClass: CardSizeClass): Dp = when (sizeClass) {
     CardSizeClass.MEDIUM -> 48.dp
     CardSizeClass.LARGE -> 56.dp
     else -> 64.dp
-}
-
-private fun Modifier.homeCardTap(onTap: () -> Unit): Modifier = pointerInput(Unit) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        if (down.isConsumed) return@awaitEachGesture
-        val startPosition = down.position
-        val slopPx = viewConfiguration.touchSlop
-        val longPressMillis = viewConfiguration.longPressTimeoutMillis
-        val tapped = withTimeoutOrNull(longPressMillis) {
-            while (true) {
-                val event = awaitPointerEvent()
-                val change = event.changes.firstOrNull { it.id == down.id } ?: continue
-                if ((change.position - startPosition).getDistance() > slopPx) {
-                    return@withTimeoutOrNull false
-                }
-                if (!change.pressed) return@withTimeoutOrNull true
-            }
-            @Suppress("UNREACHABLE_CODE") false
-        } ?: false
-        if (tapped) onTap()
-    }
 }
 
 /**
@@ -727,17 +702,23 @@ private fun ServerCardSettingsDialog(
                 //快速启动
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(
-                        text = stringResource(R.string.saves_manage_quick_play),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    MenuSwitchButton(
-                        text = stringResource(R.string.home_server_card_quick_launch),
-                        switch = quickLaunch,
-                        onSwitch = { quickLaunch = it }
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.saves_manage_quick_play),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        MenuSwitchButton(
+                            text = stringResource(R.string.home_server_card_quick_launch),
+                            switch = quickLaunch,
+                            onSwitch = { quickLaunch = it }
+                        )
+                    }
+
                     CompositionLocalProvider(
                         LocalMinimumInteractiveComponentSize provides 0.dp
                     ) {
