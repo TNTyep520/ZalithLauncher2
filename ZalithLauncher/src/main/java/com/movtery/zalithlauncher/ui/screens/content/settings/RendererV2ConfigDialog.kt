@@ -246,10 +246,16 @@ private fun SelectableEnvItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                val envTitle = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key)
+                val (title, summary) = if (!unit.summary.isNullOrEmpty()) {
+                    unit.summary to envTitle
+                } else {
+                    envTitle to null
+                }
                 TitleAndSummary(
                     modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key),
-                    summary = unit.summary
+                    title = title,
+                    summary = summary
                 )
                 Text(
                     modifier = Modifier.alpha(if (!hasCheckbox || unit.isEnabled) 0.7f else 0.38f),
@@ -319,9 +325,15 @@ private fun CustomizableEnvItem(
                 .padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            val envTitle = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key)
+            val (title, summary) = if (!unit.summary.isNullOrEmpty()) {
+                unit.summary to envTitle
+            } else {
+                envTitle to null
+            }
             TitleAndSummary(
-                title = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key),
-                summary = unit.summary
+                title = title,
+                summary = summary
             )
             SingleLineTextCheck(
                 text = unit.state,
@@ -359,12 +371,18 @@ private fun ToggleableEnvItem(
                 .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val envTitle = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key)
+            val (title, summary) = if (!unit.summary.isNullOrEmpty()) {
+                unit.summary to envTitle
+            } else {
+                envTitle to null
+            }
             TitleAndSummary(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 16.dp),
-                title = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key),
-                summary = unit.summary
+                title = title,
+                summary = summary
             )
             DefaultSwitch(
                 checked = unit.isEnabled,
