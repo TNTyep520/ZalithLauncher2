@@ -58,6 +58,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -386,9 +387,15 @@ private fun HoverTooltip(card: ServerCardState?, content: @Composable () -> Unit
     }
 
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            positioning = TooltipAnchorPosition.Below
+        ),
         tooltip = {
-            PlainTooltip { Text(text = tooltipText(card)) }
+            tooltipText(card)?.let { tooltip ->
+                PlainTooltip {
+                    Text(text = tooltip)
+                }
+            }
         },
         state = tooltipState,
         enableUserInput = false
@@ -400,20 +407,10 @@ private fun HoverTooltip(card: ServerCardState?, content: @Composable () -> Unit
 }
 
 @Composable
-private fun tooltipText(card: ServerCardState): String {
-    val undefined = stringResource(R.string.servers_list_undefined)
-    val playerFull = stringResource(R.string.servers_list_players_full)
+private fun tooltipText(card: ServerCardState): String? {
     val result = (card.ping as? ServerCardPingStatus.Loaded)?.result
-    return buildString {
-        append(card.record.cardId)
-        result?.let { r ->
-            append('\n')
-            append("${r.pingMs} ms · ${playersText(r.status.players, undefined, playerFull)}")
-            r.status.description?.let { description ->
-                append('\n')
-                append(description.flattenText().stripColorCodes())
-            }
-        }
+    return remember(result) {
+        result?.status?.version?.name?.stripColorCodes()
     }
 }
 
