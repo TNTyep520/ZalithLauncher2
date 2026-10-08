@@ -206,6 +206,30 @@ private fun DialogItemLayout(
 }
 
 /**
+ * 环境变量配置项的标题与描述布局
+ */
+@Composable
+private fun EnvTitleAndSummary(
+    pluginTitle: String?,
+    envKey: String,
+    modifier: Modifier = Modifier
+) {
+    val envText = stringResource(R.string.settings_renderer_env_title, envKey)
+    if (pluginTitle.isNullOrEmpty()) {
+        TitleAndSummary(
+            modifier = modifier,
+            title = envText
+        )
+    } else {
+        TitleAndSummary(
+            modifier = modifier,
+            title = pluginTitle,
+            summary = envText
+        )
+    }
+}
+
+/**
  * 选项式环境变量配置项
  */
 @Composable
@@ -246,16 +270,10 @@ private fun SelectableEnvItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val envTitle = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key)
-                val (title, summary) = if (!unit.summary.isNullOrEmpty()) {
-                    unit.summary to envTitle
-                } else {
-                    envTitle to null
-                }
-                TitleAndSummary(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = title,
-                    summary = summary
+                EnvTitleAndSummary(
+                    pluginTitle = unit.title,
+                    envKey = unit.rawEnv.key,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Text(
                     modifier = Modifier.alpha(if (!hasCheckbox || unit.isEnabled) 0.7f else 0.38f),
@@ -325,15 +343,9 @@ private fun CustomizableEnvItem(
                 .padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            val envTitle = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key)
-            val (title, summary) = if (!unit.summary.isNullOrEmpty()) {
-                unit.summary to envTitle
-            } else {
-                envTitle to null
-            }
-            TitleAndSummary(
-                title = title,
-                summary = summary
+            EnvTitleAndSummary(
+                pluginTitle = unit.title,
+                envKey = unit.rawEnv.key
             )
             SingleLineTextCheck(
                 text = unit.state,
@@ -371,18 +383,12 @@ private fun ToggleableEnvItem(
                 .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val envTitle = stringResource(R.string.settings_renderer_env_title, unit.rawEnv.key)
-            val (title, summary) = if (!unit.summary.isNullOrEmpty()) {
-                unit.summary to envTitle
-            } else {
-                envTitle to null
-            }
-            TitleAndSummary(
+            EnvTitleAndSummary(
+                pluginTitle = unit.title,
+                envKey = unit.rawEnv.key,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 16.dp),
-                title = title,
-                summary = summary
+                    .padding(end = 16.dp)
             )
             DefaultSwitch(
                 checked = unit.isEnabled,
