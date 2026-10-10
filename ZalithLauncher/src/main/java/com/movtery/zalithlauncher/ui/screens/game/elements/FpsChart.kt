@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -57,11 +56,11 @@ import androidx.compose.ui.unit.sp
 /** 纵轴分割段数 */
 private const val FPS_SEGMENTS = 5
 
-/** 纵轴刻度步长的候选"好数"，贴合帧率语境（1/2/5/10/15/20/30/60/120…） */
+/** 纵轴刻度步长的候选"好数" */
 private val FPS_AXIS_STEPS = intArrayOf(1, 2, 5, 10, 15, 20, 30, 60, 120, 240)
 
 /**
- * 计算纵轴的"好数"范围：均分为5段后每个刻度都落在规整数字上，
+ * 计算纵轴的"好数"范围
  * 完整覆盖实际帧率范围，两端尽量对称地留出余量，且最低刻度不小于0
  */
 private fun niceFpsBounds(fpsMin: Int, fpsMax: Int): Pair<Int, Int> {
@@ -125,10 +124,11 @@ fun FpsChart(
         Row(
             modifier = modifier
                 .width(170.dp)
-                .height(102.dp)
+                .height(95.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f))
-                .padding(horizontal = 6.dp, vertical = 4.dp)
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             //纵轴帧率标注：最高帧在上，最低帧在下
             Column(
@@ -149,8 +149,6 @@ fun FpsChart(
                     }
                 }
             }
-
-            Spacer(Modifier.width(4.dp))
 
             //帧率曲线与分割线
             Canvas(
