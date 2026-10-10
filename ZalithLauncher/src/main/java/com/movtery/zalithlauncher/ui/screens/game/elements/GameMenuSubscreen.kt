@@ -18,6 +18,9 @@
 
 package com.movtery.zalithlauncher.ui.screens.game.elements
 
+import android.content.Context
+import android.content.ContextWrapper
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -64,6 +67,7 @@ import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.setting.unit.floatRange
+import com.movtery.zalithlauncher.ui.activities.VMActivity
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
@@ -343,6 +347,22 @@ private fun GameActionContent(
                 color = color,
                 contentColor = contentColor,
                 enabled = AllSettings.showMenuBall.state
+            )
+        }
+
+        //请求最高刷新率
+        item {
+            val activity = context.findActivity() as? VMActivity
+            MenuSwitchButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_option_request_max_refresh_rate),
+                switch = AllSettings.requestMaxRefreshRate.state,
+                onSwitch = { checked ->
+                    AllSettings.requestMaxRefreshRate.save(checked)
+                    activity?.applyMaxRefreshRatePolicy()
+                },
+                color = color,
+                contentColor = contentColor,
             )
         }
 
@@ -1120,4 +1140,10 @@ private fun ControlGyroscope(
             )
         }
     }
+}
+/** 沿 ContextWrapper 链向上寻找宿主 Activity */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
