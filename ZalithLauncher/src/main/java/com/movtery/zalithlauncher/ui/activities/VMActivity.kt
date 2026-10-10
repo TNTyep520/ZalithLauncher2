@@ -615,15 +615,13 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             delay(50L.milliseconds)
             val size = pendingRefreshSize ?: return@launch
             pendingRefreshSize = null
-            withContext(Dispatchers.Main) {
-                refreshWindowSize(screenSize = size)
-            }
+            refreshWindowSize(screenSize = size)
         }
     }
 
-    private fun refreshWindowSize(
+    private suspend fun refreshWindowSize(
         screenSize: IntSize
-    ): IntSize {
+    ): IntSize = withContext(Dispatchers.Main) {
         val newSize = withHandler {
             when (type) {
                 HandlerType.GAME -> computeGameRenderSize(screenSize)
@@ -645,7 +643,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             }
         }
 
-        return newSize
+        newSize
     }
 
     override fun onDestroy() {

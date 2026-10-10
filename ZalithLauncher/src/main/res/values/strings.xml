@@ -503,6 +503,7 @@
     <string name="account_label_email">Email or Username</string>
     <string name="account_label_password">Password</string>
     <string name="account_change_skin">Change Skin</string>
+    <string name="account_wardrobe">Wardrobe</string>
     <string name="account_change_skin_arm_style">Arm Style</string>
     <string name="account_change_skin_arm_wide">Wide Arms</string>
     <string name="account_change_skin_arm_slim">Slim Arms</string>
@@ -567,7 +568,6 @@
     <string name="account_local_uuid_tip_4">This option is intended for advanced users and usually does not need to be adjusted.</string>
     <string name="account_local_uuid_invalid">Invalid UUID Format</string>
     <string name="account_local_uuid_copy">Copy UUID</string>
-    <string name="account_local_uuid_copied">Copied UUID of Account %s</string>
     <string name="account_other_login_baseurl_not_set">Base URL not set</string>
     <string name="account_other_login_getting_full_url">Resolving URL</string>
     <string name="account_other_login_getting_server_info">Fetching server info</string>
@@ -858,7 +858,6 @@
     <string name="screenshots_manage_no_screenshots">No screenshots for this version</string>
     <string name="screenshots_manage_export">Export</string>
     <string name="screenshots_manage_export_title">Export Screenshots</string>
-    <string name="screenshots_manage_export_success">Export completed</string>
     <string name="screenshots_manage_export_failed">Export failed</string>
     <string name="screenshots_manage_export_all_message">Export all screenshots to the system gallery?</string>
     <string name="screenshots_manage_export_selected_message">Export %1$d selected screenshots to the system gallery?</string>
@@ -875,6 +874,12 @@
     <string name="servers_list_delete_server_text">Are you sure you want to delete server %s?</string>
     <string name="servers_list_edit_server">Edit Server</string>
     <string name="servers_list_copy_server_address">Copy Address</string>
+    <!-- Server card -->
+    <string name="home_server_card_settings">Server Card Settings</string>
+    <string name="home_server_card_quick_launch">Quick launch button</string>
+    <string name="home_server_card_version_current">Current selected version</string>
+    <string name="home_server_card_version_specific">Specific version</string>
+    <string name="home_server_card_refresh_failed">Failed to refresh server info</string>
     <!-- Game -->
     <string name="minecraft_download_stat_download_task">Preparing downloads</string>
     <string name="minecraft_download_stat_verify_task">Preparing verifications</string>
